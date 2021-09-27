@@ -1,14 +1,15 @@
 #include "trafficlight.h"
 #include <Arduino.h>
 
-Trafficlight::Trafficlight(int _pins[]) {
-  *pins = _pins;
-};
-
-Trafficlight::Trafficlight(int _RPin, int _YPin, int _GPin) {
+Trafficlight::Trafficlight(int _RPin, int _YPin, int _GPin, unsigned long &_time) {
   RPin = _RPin;
   YPin = _YPin;
   GPin = _GPin;
+  curruntTime = &_time;
+};
+
+void Trafficlight::setOtherLight(Trafficlight &_otherLight) {
+  otherLight = &_otherLight;
 };
 
 void Trafficlight::setPinsMode() {
@@ -43,14 +44,12 @@ void Trafficlight::lightControl() {
 };
 
 void Trafficlight::lightSequance() {
-  for (int i = 0; i < 4; i++) {
+  if (*curruntTime - prevTime > 1000 && otherLight->getState() == 1) {
     lightControl();
     nextState();
-    delay(1000);
+    checkState();
+    prevTime = *curruntTime;
   }
-  checkState();
-  lightControl();
-  delay(1000);
 };
 
 void Trafficlight::setState(int _state) {
@@ -59,6 +58,12 @@ void Trafficlight::setState(int _state) {
 void Trafficlight::nextState() {
   state++;
 }
+
+
+int Trafficlight::getState() {
+  return state;
+}
+
 
 void Trafficlight::checkState() {
   if (state == 4) {
