@@ -1,11 +1,11 @@
 #include "trafficlight.h"
 #include <Arduino.h>
 
-Trafficlight::Trafficlight(int _RPin, int _YPin, int _GPin, unsigned long &_time) {
+
+Trafficlight::Trafficlight(int _RPin, int _YPin, int _GPin) {
   RPin = _RPin;
   YPin = _YPin;
   GPin = _GPin;
-  curruntTime = &_time;
 };
 
 void Trafficlight::setOtherLight(Trafficlight &_otherLight) {
@@ -32,7 +32,7 @@ void Trafficlight::turnAllOff() {
 
 void Trafficlight::lightControl() {
   turnAllOff();
-  if (state == 0 || state == 1) {
+  if (state == 0 || state == 1 || state == 4) {
     digitalWrite(RPin, HIGH);
   }
   if (state == 1 || state == 3) {
@@ -44,29 +44,31 @@ void Trafficlight::lightControl() {
 };
 
 void Trafficlight::lightSequance() {
-  if (*curruntTime - prevTime > 1000 && otherLight->getState() == 1) {
-    lightControl();
+  if (otherLight->getState() == 0) {
     nextState();
     checkState();
-    prevTime = *curruntTime;
+    lightControl();
   }
 };
 
 void Trafficlight::setState(int _state) {
   state = _state;
 }
-void Trafficlight::nextState() {
-  state++;
-}
 
+void Trafficlight::nextState() {
+  curruntTime = millis();
+  if (curruntTime - prevTime > 2000){
+     state++;
+     prevTime = curruntTime;
+  }
+}
 
 int Trafficlight::getState() {
   return state;
 }
 
-
 void Trafficlight::checkState() {
-  if (state == 4) {
+  if (state == 5) {
     state = 0;
   }
 }
